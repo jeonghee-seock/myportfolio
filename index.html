@@ -2,7 +2,6 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.classList.add("js")</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>석정희 | Portfolio</title>
 <meta name="description" content="석정희(Seok Jeong Hee) 개발자 포트폴리오">
@@ -17,11 +16,11 @@
 .hero-photo{margin:0 40px 0 8px;flex-shrink:0}
 .hero-photo img{display:block;width:150px;height:150px;border-radius:50%;object-fit:cover;object-position:50% 22%;border:2px solid rgba(94,234,212,.4);box-shadow:0 0 0 6px var(--accent-teal-dim),0 18px 36px -14px rgba(0,0,0,.7);filter:saturate(.92)}
 .hero-photo{position:relative}
-.js .hero-photo{opacity:0;transform:scale(.82);filter:blur(8px);transition:opacity .7s ease,transform .9s cubic-bezier(.2,.8,.2,1),filter .7s ease}
-.js .hero-photo.show{opacity:1;transform:none;filter:none}
+.hero-photo{animation:photo-in .9s cubic-bezier(.2,.8,.2,1) .9s both}
+@keyframes photo-in{from{opacity:0;transform:scale(.82);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 .hero-photo::before{content:"";position:absolute;inset:-14px;border-radius:50%;border:1.5px dashed rgba(94,234,212,.5);animation:ring-spin 24s linear infinite}
 @keyframes ring-spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.hero-photo::before{animation:none}.js .hero-photo{transition:none}}
+@media(prefers-reduced-motion:reduce){.hero-photo,.hero-photo::before{animation:none}}
 @media(max-width:880px){.terminal-main{flex-direction:column}.hero-photo{order:-1;margin:24px 0 0}.hero-photo img{width:112px;height:112px}.terminal-main .terminal-body{width:100%}}
 </style>
 </head>
