@@ -1,9 +1,9 @@
 // =========================================================
-// 1) TERMINAL TYPING INTRO
+// 1) TERMINAL TYPING INTRO + PHOTO REVEAL
 // =========================================================
 const terminalLines = [
   { type: 'cmd', text: 'whoami' },
-  { type: 'out', text: '석정희 (Seok Jeong Hee) — Software Engineer', cls: 'highlight-name' },
+  { type: 'out', text: '석정희 (Seok Jeong Hee)', cls: 'highlight-name' },
   { type: 'gap' },
   { type: 'cmd', text: 'cat introduction.txt' },
   { type: 'out', text: 'Python을 중심으로 소프트웨어를 설계하고 구현하며' },
@@ -15,68 +15,58 @@ const terminalLines = [
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const body = document.getElementById('terminalBody');
-
-function renderStatic() {
-  body.innerHTML = '';
-  terminalLines.forEach(line => {
-    if (line.type === 'gap') { body.appendChild(document.createElement('br')); return; }
-    const div = document.createElement('div');
-    if (line.type === 'cmd') {
-      div.innerHTML = `<span class="prompt">$</span> ${line.text}`;
-    } else {
-      div.innerHTML = `<span class="prompt-out ${line.cls || ''}">${line.text}</span>`;
-    }
-    body.appendChild(div);
-  });
-  const cursor = document.createElement('span');
-  cursor.className = 'cursor';
-  body.appendChild(cursor);
-}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function typeLine(el, text, speed) {
-  for (let i = 0; i < text.length; i++) {
-    el.textContent += text[i];
-    await new Promise(r => setTimeout(r, speed));
+  for (const ch of text) {
+    el.textContent += ch;
+    await sleep(speed);
   }
 }
 
-async function playIntro() {
+async function renderTerminal(animate) {
   body.innerHTML = '';
-  const cursor = document.createElement('span');
-  cursor.className = 'cursor';
+
+  // 증명사진: 움직임 줄이기 설정이면 바로 보여주고,
+  // 아니면 이름(whoami 결과)이 타이핑된 직후에 나타나게 함
+  const photo = document.querySelector('.hero-photo');
+  if (!animate && photo) photo.classList.add('show');
 
   for (const line of terminalLines) {
     if (line.type === 'gap') {
       body.appendChild(document.createElement('br'));
       continue;
     }
+
     const div = document.createElement('div');
-    body.appendChild(div);
+    const span = document.createElement('span');
 
     if (line.type === 'cmd') {
-      const promptSpan = document.createElement('span');
-      promptSpan.className = 'prompt';
-      promptSpan.textContent = '$ ';
-      div.appendChild(promptSpan);
-      const textSpan = document.createElement('span');
-      div.appendChild(textSpan);
-      await typeLine(textSpan, line.text, 32);
-      await new Promise(r => setTimeout(r, 180));
+      div.innerHTML = '<span class="prompt">$</span> ';
     } else {
-      const outSpan = document.createElement('span');
-      outSpan.className = `prompt-out ${line.cls || ''}`;
-      div.appendChild(outSpan);
-      await typeLine(outSpan, line.text, 14);
+      span.className = 'prompt-out ' + (line.cls || '');
+    }
+    div.appendChild(span);
+    body.appendChild(div);
+
+    if (animate) {
+      await typeLine(span, line.text, line.type === 'cmd' ? 32 : 14);
+      if (line.type === 'cmd') await sleep(180);
+    } else {
+      span.textContent = line.text;
+    }
+
+    if (animate && photo && line.cls === 'highlight-name') {
+      photo.classList.add('show');
     }
   }
+
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
   body.appendChild(cursor);
 }
 
-if (reduceMotion) {
-  renderStatic();
-} else {
-  playIntro();
-}
+renderTerminal(!reduceMotion);
 
 // =========================================================
 // 2) SCROLLSPY — highlight active file in sidebar + tabbar
@@ -87,12 +77,18 @@ const navLinks = document.querySelectorAll('.file-tree a, .tab');
 const spy = new IntersectionObserver(
   (entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.getAttribute('id');
-        navLinks.forEach(link => {
-          link.classList.toggle('active', link.dataset.target === id);
-        });
-      }
+      if (!entry.isIntersecting) return;
+      const id = entry.target.id;
+
+      navLinks.forEach(link => {
+        const isActive = link.dataset.target === id;
+        link.classList.toggle('active', isActive);
+
+        // 모바일 탭바: 활성 탭이 화면 가운데로 오도록 (페이지 전체는 안 움직임)
+        if (isActive && link.classList.contains('tab')) {
+          link.scrollIntoView({ inline: 'center', block: 'nearest' });
+        }
+      });
     });
   },
   { rootMargin: '-40% 0px -50% 0px', threshold: 0 }
